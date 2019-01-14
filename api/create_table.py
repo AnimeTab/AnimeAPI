@@ -1,6 +1,6 @@
 import json, sqlite3, os
 
-with open ("C:/Users/jpnts/Desktop/AnimeTab/app/data/db.json", 'r', encoding = "utf8") as f:
+with open ("C:/Users/jpnts/Desktop/Anime/AnimeAPI/data/db.json", 'r', encoding = "utf8") as f:
     quotes = json.load(f)
 
 connection = sqlite3.connect('data.db')
