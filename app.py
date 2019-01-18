@@ -165,4 +165,5 @@ api.add_resource(Anime, '/quote/<string:quote>')
 api.add_resource(TempList, '/temp')
 api.add_resource(Temp,'/temp/<string:quote>')
 
-app.run(debug= True)
+if __name__ == "__main__":
+    app.run()
