@@ -165,4 +165,4 @@ api.add_resource(Anime, '/quote/<string:quote>')
 api.add_resource(TempList, '/temp')
 api.add_resource(Temp,'/temp/<string:quote>')
 
-app.run(port=8080 , debug= True)
+app.run(debug= True)
