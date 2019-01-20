@@ -2,11 +2,15 @@ from flask import Flask, jsonify, request
 from flask_restful import Api, Resource, reqparse
 from flask_cors import CORS
 import sqlite3
+import create_table
+import logging
 
 app = Flask(__name__)
 api = Api(app)
 CORS(app)
+
 class AnimeList(Resource):
+
     def get(self):
         connection = sqlite3.connect('data.db')
         cursor = connection.cursor()
@@ -15,9 +19,12 @@ class AnimeList(Resource):
         animes = []
         for row in result:
             animes.append({'anime':row[0],'quote':row[1], 'author':row[2]})
+        logging.basicConfig(filename = "logger.log", format='%(asctime)s - %(message)s', level=logging.INFO)
+        logging.info('Getting Anime Quotes')
         connection.close()
 
         return {'animes': animes}
+
 
 class Anime(Resource):
 
@@ -102,6 +109,7 @@ class Anime(Resource):
             connection.close()
             return anime
 
+
 class TempList(Resource):
     @classmethod
     def find_quote(cls, quote):
@@ -135,6 +143,7 @@ class TempList(Resource):
         connection.close()
         return {'message': "Deleted!"}
 
+
 class Temp(Resource):
     @classmethod
     def find_quote(cls, quote):
@@ -166,4 +175,4 @@ api.add_resource(TempList, '/temp')
 api.add_resource(Temp,'/temp/<string:quote>')
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
