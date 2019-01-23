@@ -13,7 +13,6 @@ app = Flask(__name__)
 api = Api(app)
 CORS(app)
 
-keyring.set_password('app','animetab','NARU20islife')
 
 class AnimeList(Resource):
 
