@@ -4,10 +4,16 @@ from flask_cors import CORS
 import sqlite3
 import create_table
 import logging
+import smtplib, ssl
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import keyring
 
 app = Flask(__name__)
 api = Api(app)
 CORS(app)
+
+keyring.set_password('app','animetab','NARU20islife')
 
 class AnimeList(Resource):
 
@@ -18,7 +24,7 @@ class AnimeList(Resource):
         result = cursor.execute(query)
         animes = []
         for row in result:
-            animes.append({'anime':row[0],'quote':row[1], 'author':row[2]})
+            animes.append({'anime':row[0],'quote':row[1], 'author':row[2], 'color': row[3], 'logo': row[4], 'email': row[5]})
         logging.basicConfig(filename = "logger.log", format='%(asctime)s - %(message)s', level=logging.INFO)
         logging.info('Getting Anime Quotes')
         connection.close()
@@ -36,13 +42,14 @@ class Anime(Resource):
         result = cursor.execute(query,(quote,))
         row = result.fetchone()
         if row:
-            return {'anime':row[0], 'quote': row[1], 'author': row[2]}
+            return {'anime':row[0], 'quote': row[1], 'author': row[2], 'color': row[3], 'logo': row[4], 'email': row[5]}
         return None
     
     def post(self, quote):
         if Anime.find_quote(quote):
             return {'message': "This quote already exsits!"}
         parser = reqparse.RequestParser()
+        
         parser.add_argument('anime',
         type = str,
         required = True,
@@ -54,20 +61,43 @@ class Anime(Resource):
         required = True,
         help = "Don't leave blank"
         )
+
+        parser.add_argument('color',
+        type = str,
+        required = True,
+        help = "Don't leave blank"
+        )
+
+        parser.add_argument('logo',
+        type = str,
+        required = True,
+        help = "Don't leave blank"
+        )
+
+        parser.add_argument('email',
+        type = str,
+        required = True,
+        help = "Don't leave blank"
+        )
+
         data = parser.parse_args()
         anime = {
             'anime': data['anime'],
             'quote': quote,
-            'author': data['author']
+            'author': data['author'],
+            'color' : data['color'],
+            'logo': data['logo'],
+            'email': data['email']
         }
         
         connection = sqlite3.connect('data.db')
         cursor = connection.cursor()
-        query = "INSERT INTO temp VALUES (?, ?, ?)"
-        cursor.execute(query,(anime['anime'], anime['quote'], anime['author']))
+        query = "INSERT INTO temp VALUES (?, ?, ?, ?, ?, ?)"
+        cursor.execute(query,(anime['anime'], anime['quote'], anime['author'], anime['color'], anime['logo'], anime['email']))
 
         connection.commit()
         connection.close()
+
         return anime, 201
 
     def put(self, quote):
@@ -82,8 +112,9 @@ class Anime(Resource):
         else:
             connection = sqlite3.connect('data.db')
             cursor = connection.cursor()
-            query = "INSERT INTO anime VALUES (?, ?, ?)"
+            query = "INSERT INTO anime VALUES (?, ?, ?, ?, ?, ?)"
             parser = reqparse.RequestParser()
+
             parser.add_argument('anime',
             type = str,
             required = True,
@@ -96,17 +127,66 @@ class Anime(Resource):
             help = "Can't be blank!"
             )
 
+            parser.add_argument('color',
+            type = str,
+            required = True,
+            help = "Don't leave blank"
+            )
+
+            parser.add_argument('logo',
+            type = str,
+            required = True,
+            help = "Don't leave blank"
+            )
+
+            parser.add_argument('email',
+            type = str,
+            required = True,
+            help = "Don't leave blank"
+            )
+            
             data = parser.parse_args()
+            
             anime = {
                 'anime': data['anime'],
                 'quote': quote,
-                'author': data['author']
+                'author': data['author'],
+                'color' : data['color'],
+                'logo': data['logo'],
+                'email': data['email']
             }    
 
-            cursor.execute(query,(data['anime'], quote, data['author']))
+            cursor.execute(query,(data['anime'], quote, data['author'], anime['color'], anime['logo'], anime['email']))
             cursor.execute("DELETE FROM temp WHERE quote = ?",(quote,))
             connection.commit()
             connection.close()
+
+            sender = "animetab.xyz@gmail.com"
+            receiver = anime['email']
+            password = keyring.get_password('app','animetab')    
+
+            message = MIMEMultipart()
+            message["Subject"] = "Quote Accepted!"
+            message["From"] = sender
+            message["To"] = receiver
+            
+            text = """\
+               Congrats!
+               Your quote has been submitted!
+               """
+            part1 = MIMEText(text, "plain")
+
+            # Add HTML/plain-text parts to MIMEMultipart message
+            # The email client will try to render the last part first
+            message.attach(part1)
+
+            # Create secure connection with server and send email
+            context = ssl.create_default_context()
+            with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
+                server.login(sender, password)
+                server.sendmail(
+                    sender, receiver, message.as_string()
+                )
             return anime
 
 
@@ -119,7 +199,7 @@ class TempList(Resource):
         result = cursor.execute(query,(quote,))
         row = result.fetchone()
         if row:
-            return {'anime':row[0], 'quote': row[1], 'author': row[2]}
+            return {'anime':row[0], 'quote': row[1], 'author': row[2], 'color': row[3], 'logo': row[4], 'email': row[5]}
         return None
 
     def get(self):
@@ -129,7 +209,7 @@ class TempList(Resource):
         result = cursor.execute(query)
         animes = []
         for row in result:
-            animes.append({'anime':row[0],'quote':row[1], 'author':row[2]})
+            animes.append({'anime':row[0],'quote':row[1], 'author':row[2], 'color': row[3], 'logo': row[4], 'email': row[5]})
         connection.close()
 
         return {'animes': animes}
@@ -153,7 +233,7 @@ class Temp(Resource):
         result = cursor.execute(query,(quote,))
         row = result.fetchone()
         if row:
-            return {'anime':row[0], 'quote': row[1], 'author': row[2]}
+            return {'anime':row[0], 'quote': row[1], 'author': row[2], 'color': row[3], 'logo': row[4], 'email': row[5]}
         return None
 
     def delete(self, quote):
