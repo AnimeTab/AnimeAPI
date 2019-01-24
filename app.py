@@ -252,4 +252,4 @@ api.add_resource(TempList, '/temp')
 api.add_resource(Temp,'/temp/<string:quote>')
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
