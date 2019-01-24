@@ -13,7 +13,6 @@ app = Flask(__name__)
 api = Api(app)
 CORS(app)
 
-
 class AnimeList(Resource):
 
     def get(self):
@@ -163,7 +162,6 @@ class Anime(Resource):
             sender = "animetab.xyz@gmail.com"
             receiver = anime['email']
             password = keyring.get_password('app','animetab')    
-
             message = MIMEMultipart()
             message["Subject"] = "Quote Accepted!"
             message["From"] = sender

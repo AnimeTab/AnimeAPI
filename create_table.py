@@ -11,6 +11,7 @@ cursor = connection.cursor()
 
 cursor.execute("DROP TABLE anime")
 cursor.execute("DROP TABLE temp")
+
 create_table = "CREATE TABLE IF NOT EXISTS anime (anime text, quote text, author text, color text, logo text, email text)"
 cursor.execute(create_table)
 
