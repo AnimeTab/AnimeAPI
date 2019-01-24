@@ -2,3 +2,4 @@ Flask
 Flask_RESTful
 flask-cors
 uwsgi
+keyring
