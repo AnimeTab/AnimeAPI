@@ -37,6 +37,8 @@ class Anime(Resource):
         connection = sqlite3.connect('data.db')
         cursor = connection.cursor()
         query = "SELECT * FROM anime WHERE quote = ?"
+        quote.lower()
+        quote.replace(" ","")
         result = cursor.execute(query,(quote,))
         row = result.fetchone()
         if row:
@@ -80,7 +82,7 @@ class Anime(Resource):
 
         data = parser.parse_args()
         anime = {
-            'anime': data['anime'],
+            'anime': data['anime'].lower().replace(" ", ""),
             'quote': quote,
             'author': data['author'],
             'color' : data['color'],
@@ -103,6 +105,8 @@ class Anime(Resource):
             connection = sqlite3.connect('data.db')
             cursor = connection.cursor()
             query = "DELETE FROM temp WHERE quote = ?"
+            quote.lower()
+            quote.replace(" ", "")
             cursor.execute(query,(quote,))
             connection.commit()
             connection.close()
